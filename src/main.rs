@@ -1,8 +1,9 @@
 use std::env;
 
-use axum::{Router, routing::get};
 use dotenvy::dotenv;
 use sqlx::{pool::PoolConnection, postgres::PgPoolOptions};
+
+mod routes;
 
 #[tokio::main]
 async fn main() {
@@ -18,8 +19,8 @@ async fn main() {
         .expect("db connection failed");
 
     sqlx::migrate!().run(&pool).await.expect("migration failed");
-    let app = Router::new()
-        .route("/", get(|| async { "hello world".to_string() }));
+    
+    let app = routes::create_routes();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
