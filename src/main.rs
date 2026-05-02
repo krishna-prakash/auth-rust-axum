@@ -1,11 +1,12 @@
 use dotenvy::dotenv;
 use sqlx::{postgres::PgPoolOptions};
 
-use crate::config::config::Config;
+use crate::{config::config::Config, database::{DBClient}};
 
 mod routes;
 mod handlers;
 mod config;
+mod database;
 
 #[tokio::main]
 async fn main() {
@@ -20,10 +21,12 @@ async fn main() {
         .await
         .expect("db connection failed");
 
+    let db = DBClient::new(pool);
+
     println!("here is the app config jwt secret {:?}", app_config.jwt_secret);
     println!("here is the app config jwt maxage {:?}", app_config.jwt_maxage);
 
-    sqlx::migrate!().run(&pool).await.expect("migration failed");
+    sqlx::migrate!().run(&db.pool).await.expect("migration failed");
     
     let app = routes::create_routes();
 
