@@ -7,6 +7,14 @@ mod routes;
 mod handlers;
 mod config;
 mod database;
+mod models;
+mod dtos;
+
+#[derive(Debug, Clone)]
+struct AppState {
+    config: Config,
+    db_client: DBClient,
+}
 
 #[tokio::main]
 async fn main() {
@@ -26,9 +34,14 @@ async fn main() {
     println!("here is the app config jwt secret {:?}", app_config.jwt_secret);
     println!("here is the app config jwt maxage {:?}", app_config.jwt_maxage);
 
+    let app_state = AppState {
+        config: app_config,
+        db_client: db.clone(),
+    };
+
     sqlx::migrate!().run(&db.pool).await.expect("migration failed");
-    
-    let app = routes::create_routes();
+
+    let app = routes::create_routes().with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 

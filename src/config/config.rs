@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     pub db_url: String,
     pub jwt_secret: String,
@@ -8,7 +8,7 @@ pub struct Config {
 
 impl Config {
     pub fn init() -> Self {
-        let db_url = std::env::var("DB_URL").expect("failed to load db url");
+        let db_url = std::env::var("DATABASE_URL").expect("failed to load db url");
         let jwt_secret = std::env::var("JWT_SECRET").expect("failed to load db url");
         let jwt_maxage = std::env::var("JWT_MAXAGE")
             .unwrap_or_else(|_| "86400".to_string())

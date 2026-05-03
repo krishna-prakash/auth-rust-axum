@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO email_verifications(user_id, token, expires_at)\n                VALUES($1, $2::UUID, $3)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "93894dee3261877f44e18ae7db742dc8350e7cd03fda0cbf101bf71d9619e1af"
+}
