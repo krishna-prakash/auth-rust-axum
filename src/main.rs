@@ -9,6 +9,7 @@ mod config;
 mod database;
 mod models;
 mod dtos;
+mod utils;
 
 #[derive(Debug, Clone)]
 struct AppState {
