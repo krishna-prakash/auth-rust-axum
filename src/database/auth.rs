@@ -1,6 +1,6 @@
 use sqlx::Error;
 
-use crate::{database::DBClient, dtos::auth::RegisterUserDBEntryDto, models::User};
+use crate::{database::DBClient, dtos::auth::RegisterUserDBEntryDto, models::User, utils::password};
 
 pub trait AuthExt {
     async fn create_user(
