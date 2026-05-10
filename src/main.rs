@@ -1,7 +1,7 @@
 use dotenvy::dotenv;
 use sqlx::{postgres::PgPoolOptions};
 
-use crate::{config::config::Config, database::{DBClient}};
+use crate::{config::{config::Config, mail::MailConfig}, database::DBClient};
 
 mod routes;
 mod handlers;
@@ -10,10 +10,12 @@ mod database;
 mod models;
 mod dtos;
 mod utils;
+mod mail;
 
 #[derive(Debug, Clone)]
 struct AppState {
     config: Config,
+    mail_config: MailConfig,
     db_client: DBClient,
 }
 
@@ -22,6 +24,7 @@ async fn main() {
     dotenv().ok();
 
     let app_config = Config::init();
+    let mail_config = MailConfig::init();
     let addr = format!("0.0.0.0:{}", app_config.port);
 
     let pool = PgPoolOptions::new()
@@ -37,6 +40,7 @@ async fn main() {
 
     let app_state = AppState {
         config: app_config,
+        mail_config: mail_config,
         db_client: db.clone(),
     };
 

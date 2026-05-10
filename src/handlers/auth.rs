@@ -3,7 +3,7 @@ use chrono::{Duration, Utc};
 use sqlx::{Error, database};
 use uuid::Uuid;
 
-use crate::{AppState, database::auth::AuthExt, dtos::auth::{RegisterUserDBEntryDto, RegisterUserDto}, models::User, utils::password};
+use crate::{AppState, database::auth::AuthExt, dtos::auth::{RegisterUserDBEntryDto, RegisterUserDto}, mail::mail::send_verification_email, models::User, utils::password};
 
 pub fn auth_handlers() -> Router<AppState> {
     Router::new()
@@ -31,10 +31,13 @@ pub async fn register(
     let result = app_state.db_client.create_user(register_user).await;
 
     match result {
-        Ok(user) => Ok((
+        Ok(user) => {
+        let _em = send_verification_email(&app_state.mail_config).await;
+        Ok((
            StatusCode::CREATED,
            Json(user)   
-        ).into_response()),
+        ).into_response())
+    },
         Err(e) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             e.to_string()
