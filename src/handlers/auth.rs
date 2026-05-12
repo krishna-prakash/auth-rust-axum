@@ -1,6 +1,6 @@
-use axum::{Json, Router, extract::State, http::StatusCode, response::{IntoResponse, Response}, routing::post};
+use axum::{Json, Router, extract::{Query, State}, http::StatusCode, response::{IntoResponse, Response}, routing::{get, post}};
 use chrono::{Duration, Utc};
-use sqlx::{Error, database};
+use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{AppState, database::auth::AuthExt, dtos::auth::{RegisterUserDBEntryDto, RegisterUserDto}, mail::mail::send_verification_email, models::User, utils::password};
@@ -8,6 +8,7 @@ use crate::{AppState, database::auth::AuthExt, dtos::auth::{RegisterUserDBEntryD
 pub fn auth_handlers() -> Router<AppState> {
     Router::new()
         .route("/register", post(register))
+        .route("/verify", get(verify))
 }
 
 
@@ -37,7 +38,6 @@ pub async fn register(
             &user.email,
             verification_token
         ).await;
-
         
         if let Err(_e) = em {
             return Err((
@@ -61,4 +61,16 @@ pub async fn register(
             e.to_string()
         ).into_response())
     } 
+}
+
+#[derive(Deserialize)]
+pub struct VerifyParams {
+    token: String
+}
+
+pub async fn verify(
+    Query(params): Query<VerifyParams> 
+) -> String {
+    println!("{}", params.token );
+    params.token
 }
