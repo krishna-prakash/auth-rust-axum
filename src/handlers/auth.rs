@@ -32,7 +32,25 @@ pub async fn register(
 
     match result {
         Ok(user) => {
-        let _em = send_verification_email(&app_state.mail_config).await;
+        let em = send_verification_email(
+            &app_state.mail_config,
+            &user.email,
+            verification_token
+        ).await;
+
+        
+        if let Err(_e) = em {
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "We are unable to send verification email, please login and resend manually"
+            ).into_response());
+        };
+
+        match em {
+            Ok(_) => println!("email sent successfully"),
+            Err(e) => println!("{:?}", e.to_string())
+        }
+        
         Ok((
            StatusCode::CREATED,
            Json(user)   

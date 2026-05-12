@@ -1,20 +1,23 @@
 use resend_rs::{Resend, types::CreateEmailBaseOptions};
+use uuid::Uuid;
 
-use crate::config::mail::MailConfig;
+use crate::{config::mail::MailConfig, mail::sendmail::send_mail};
 
 
 pub async fn send_verification_email(
     mail_config: &MailConfig, 
-) -> Result<(), &'static str> {
-    let resend = Resend::new(&mail_config.api_key);
-    let from_email = "onboarding@resend.dev";
-    let to = ["krishnakprakash296@gmail.com"];
-    let subject = "Dev check";
+    to_email: &str,
+    verification_token: Uuid
+) -> Result<(), String> {
+    // contruct verification email here
 
-    let email = CreateEmailBaseOptions::new(from_email, to, subject)
-        .with_html("<p>This is first outgoing email from web service</p>");
+    let subject = "Verification email".to_string();
+    // let backend_base = format!("{}/auth/verify", &mail_config.backend_base_url);
+    // let template_path = format!("{}/verification_email.html", &mail_config.mail_template_path);
+    let to_email = [to_email.to_string()];
 
-    let _email = resend.emails.send(email).await;
-    print!("{:?}", _email);
-    Ok(())
+    let body = include_str!("./templates/verification_email.html");
+    println!("{:?}", body);
+
+    send_mail(&mail_config, &to_email, &subject, body).await    
 }
