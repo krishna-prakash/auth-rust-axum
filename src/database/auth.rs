@@ -1,12 +1,17 @@
 use sqlx::Error;
+use uuid::Uuid;
 
-use crate::{database::DBClient, dtos::auth::RegisterUserDBEntryDto, models::User, utils::password};
+use crate::{database::DBClient, dtos::auth::{EmailVerificationDto, RegisterUserDBEntryDto}, models::User, utils::password};
 
 pub trait AuthExt {
     async fn create_user(
         &self,
         register_user_info: RegisterUserDBEntryDto
     ) -> Result<User, Error>;
+    async fn get_user_by_id(
+        &self,
+        token: Uuid
+    ) -> Result<Option<EmailVerificationDto>, Error>;
 }
 
 impl AuthExt for DBClient {
@@ -49,4 +54,19 @@ impl AuthExt for DBClient {
     Ok(user)
         
     } 
+
+    async fn get_user_by_id(&self, token: Uuid) -> Result<Option<EmailVerificationDto>, Error> {
+        let record = sqlx::query_as!(
+            EmailVerificationDto,
+            r#"
+                SELECT user_id, token, expires_at
+                FROM email_verifications
+                WHERE token = $1
+            "#,
+            token
+        ).fetch_optional(&self.pool)
+        .await?;
+
+        Ok(record)
+    }
 }

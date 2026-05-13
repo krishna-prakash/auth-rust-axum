@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
 
@@ -18,4 +18,11 @@ pub struct RegisterUserDBEntryDto {
     pub password: String,
     pub verfication_token: Uuid,
     pub veritication_token_expires_at: DateTime<Utc>
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct EmailVerificationDto {
+    pub user_id: String,
+    pub token: Uuid,
+    pub expires_at: DateTime<Utc>
 }

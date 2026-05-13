@@ -69,8 +69,28 @@ pub struct VerifyParams {
 }
 
 pub async fn verify(
+    State(app_state): State<AppState>,
     Query(params): Query<VerifyParams> 
-) -> String {
-    println!("{}", params.token );
-    params.token
+) -> Result<Response, Response> {
+
+    let token = Uuid::parse_str(&params.token)
+        .map_err(|e| e.to_string().into_response())?;
+
+    let result = app_state
+        .db_client
+        .get_user_by_id(token)
+        .await
+        .map_err(|e| e.to_string().into_response())?;
+    
+    match result {
+        Some(data) => Ok((
+            StatusCode::OK,
+            Json(data)
+        ).into_response()),
+        None => Err((
+            StatusCode::NOT_FOUND,
+            "user not found"
+        ).into_response())
+    }
+    
 }
