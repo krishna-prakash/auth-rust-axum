@@ -22,7 +22,7 @@ pub struct RegisterUserDBEntryDto {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EmailVerificationDto {
-    pub user_id: String,
+    pub user_id: Uuid,
     pub token: Uuid,
     pub expires_at: DateTime<Utc>
 }

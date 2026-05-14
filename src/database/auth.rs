@@ -12,6 +12,16 @@ pub trait AuthExt {
         &self,
         token: Uuid
     ) -> Result<Option<EmailVerificationDto>, Error>;
+    async fn verify_user(
+        &self,
+        user_id: Uuid,
+    ) -> Result<(), Error>;
+    async fn get_user(
+        &self,
+        user_id: Option<Uuid>,
+        name: Option<&str>,
+        email: Option<&str>,
+    ) -> Result<Option<User>, Error>;
 }
 
 impl AuthExt for DBClient {
@@ -55,6 +65,34 @@ impl AuthExt for DBClient {
         
     } 
 
+    async fn get_user(
+        &self,
+        user_id: Option<Uuid>,
+        name: Option<&str>,
+        email: Option<&str>,
+    ) -> Result<Option<User>, Error>
+    {
+        let mut query = String::from("SELECT * FROM users WHERE 1=1");
+        if let Some(_user_id) = user_id {
+            query.push_str("AND id=$1");
+        }
+        if let Some(_name) = name {
+            query.push_str("AND name=$2");
+        }
+        if let Some(_email) = email {
+            query.push_str("AND id=$1");
+        }
+
+        let row = sqlx::query_as::<_, User>(&query)
+            .bind(user_id)
+            .bind(name)
+            .bind(email)
+            .fetch_optional(&self.pool)
+            .await?;
+
+        Ok(row)
+    }
+
     async fn get_user_by_id(&self, token: Uuid) -> Result<Option<EmailVerificationDto>, Error> {
         let record = sqlx::query_as!(
             EmailVerificationDto,
@@ -68,5 +106,28 @@ impl AuthExt for DBClient {
         .await?;
 
         Ok(record)
+    }
+
+    async fn verify_user(&self, user_id: Uuid) -> Result<(), Error> {
+        sqlx::query!(
+            r#"
+                UPDATE users
+                SET email_verified = true
+                WHERE id = $1
+            "#,
+            user_id
+        ).execute(&self.pool)
+        .await?;
+
+        sqlx::query!(
+            r#"
+                DELETE FROM email_verifications
+                WHERE user_id = $1
+            "#,
+            user_id
+        ).execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }

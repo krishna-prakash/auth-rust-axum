@@ -81,16 +81,28 @@ pub async fn verify(
         .get_user_by_id(token)
         .await
         .map_err(|e| e.to_string().into_response())?;
-    
-    match result {
-        Some(data) => Ok((
-            StatusCode::OK,
-            Json(data)
-        ).into_response()),
-        None => Err((
-            StatusCode::NOT_FOUND,
-            "user not found"
+
+    let email_verification = result
+        .ok_or_else(|| ((
+            StatusCode::BAD_REQUEST,
+            "invalid token"
+        )).into_response())?;
+
+    if Utc::now() > email_verification.expires_at {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "token_expired"
         ).into_response())
     }
     
+    app_state
+        .db_client
+        .verify_user(email_verification.user_id)
+        .await
+        .map_err(|e| e.to_string().into_response())?;
+
+    Ok((
+        StatusCode::OK,
+        "verification done"
+    ).into_response())
 }
