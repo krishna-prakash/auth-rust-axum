@@ -8,7 +8,7 @@ pub trait AuthExt {
         &self,
         register_user_info: RegisterUserDBEntryDto
     ) -> Result<User, Error>;
-    async fn get_user_by_id(
+    async fn get_user_id_by_token(
         &self,
         token: Uuid
     ) -> Result<Option<EmailVerificationDto>, Error>;
@@ -93,7 +93,7 @@ impl AuthExt for DBClient {
         Ok(row)
     }
 
-    async fn get_user_by_id(&self, token: Uuid) -> Result<Option<EmailVerificationDto>, Error> {
+    async fn get_user_id_by_token(&self, token: Uuid) -> Result<Option<EmailVerificationDto>, Error> {
         let record = sqlx::query_as!(
             EmailVerificationDto,
             r#"

@@ -78,7 +78,7 @@ pub async fn verify(
 
     let result = app_state
         .db_client
-        .get_user_by_id(token)
+        .get_user_id_by_token(token)
         .await
         .map_err(|e| e.to_string().into_response())?;
 
@@ -101,6 +101,18 @@ pub async fn verify(
         .await
         .map_err(|e| e.to_string().into_response())?;
 
+    let user = app_state
+        .db_client
+        .get_user(Some(email_verification.user_id), None, None)
+        .await
+        .map_err(|e| e.to_string().into_response())?;
+
+    let _user = user.ok_or_else(|| ((
+        StatusCode::BAD_REQUEST,
+        "invalid token"
+    )).into_response());
+
+    // send welcome email
     Ok((
         StatusCode::OK,
         "verification done"
