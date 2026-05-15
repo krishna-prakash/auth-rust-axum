@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use uuid::Uuid;
 
 use crate::{config::mail::MailConfig, mail::sendmail::send_mail};
@@ -19,4 +21,15 @@ pub async fn send_verification_email(
     println!("{}", verification_link);
 
     send_mail(&mail_config, &to_email, &subject, body).await    
+}
+
+pub async fn send_welcome_email(
+    mail_config: &MailConfig,
+    to_email: &String,
+) -> Result<(), String> {
+    let subject = &"Welocme to Authentication kit".to_string();
+    let to_email = [to_email.to_string()];
+    let body = include_str!("./templates/welcome_email.html");
+
+    send_mail(mail_config, &to_email, subject, body).await
 }

@@ -3,7 +3,7 @@ use chrono::{Duration, Utc};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{AppState, database::auth::AuthExt, dtos::auth::{RegisterUserDBEntryDto, RegisterUserDto}, mail::mail::send_verification_email, models::User, utils::password};
+use crate::{AppState, database::auth::AuthExt, dtos::auth::{RegisterUserDBEntryDto, RegisterUserDto}, mail::mail::{send_verification_email, send_welcome_email}, models::User, utils::password};
 
 pub fn auth_handlers() -> Router<AppState> {
     Router::new()
@@ -107,11 +107,18 @@ pub async fn verify(
         .await
         .map_err(|e| e.to_string().into_response())?;
 
-    let _user = user.ok_or_else(|| ((
+    let user = user.ok_or_else(|| ((
         StatusCode::BAD_REQUEST,
         "invalid token"
-    )).into_response());
+    )).into_response())?;
 
+    let send_welcome_email = send_welcome_email(
+        &app_state.mail_config, &user.email
+    ).await;
+
+    if let Err(e) = send_welcome_email {
+        eprint!("Failed to send welcome email {}", e);
+    }
     // send welcome email
     Ok((
         StatusCode::OK,
